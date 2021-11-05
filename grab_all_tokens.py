@@ -10,7 +10,6 @@ import requests
 KEY = os.environ.get('KEY', '')
 SECRET = os.environ.get('SECRET', '')
 
-
 # 1. Redirect user for authentication/authorization
 # Make sure flask_app is running with ./run_app, which will
 # capture ethe authorization code.
@@ -58,20 +57,20 @@ print(resp_dict)
 access_token = resp_dict['access_token']
 refresh_token = resp_dict['refresh_token']
 
-# %% 4. Get Refresh token (indefinite expiry)
-# https://api.tradestation.com/docs/fundamentals/authentication/refresh-tokens/
-base_url = 'https://signin.tradestation.com/oauth/token'
-headers = {'content-type': 'application/x-www-form-urlencoded'}
-data = {
-    'grant_type': 'refresh_token',
-    'client_id': KEY,
-    'client_secret': SECRET,
-    'refresh_token': refresh_token,
-}
-resp = requests.post(base_url, headers=headers, data=data, allow_redirects=True)
-resp_dict = resp.json()
-access_token = resp_dict['access_token']
-print(f"Access token: {access_token}")
-
 with open(os.path.join(cur_dir, 'access_token.txt'), mode='w') as fh:
     fh.write(access_token)
+with open(os.path.join(cur_dir, 'refresh_token.txt'), mode='w') as fh:
+    fh.write(refresh_token)
+
+# optionally export your access token to http-client.priver.env.json
+import json
+private_json_env_filename = 'http-client.private.env.json'
+
+def write_to_http_env_file(key, token):
+    with open(private_json_env_filename, 'r') as fh:
+        envs = json.load(fh)
+    envs['dev'][key] = token
+    with open(private_json_env_filename, 'w') as fh:
+        json.dump(envs, fh)
+
+write_to_http_env_file('access_token', access_token)
